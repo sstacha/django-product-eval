@@ -16,6 +16,7 @@ echo "$(cat /etc/hosts)"
 echo "param 1: $1"
 
 # todo: determine if we should always collectstatic and migrate
+echo "entrypoint pwd: $(pwd)"
 
 fix_linux_internal_host
 echo "running command"

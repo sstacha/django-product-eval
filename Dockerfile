@@ -1,5 +1,5 @@
 # FROM python:3.8.3-buster
-FROM python:3.9.2-buster
+FROM python:3.9.6-buster
 
 RUN apt-get update
 #RUN apt-get update \
@@ -29,8 +29,8 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 # w/container named mount
 # docker run -it --env-file=.env --name django-db-services -p 8000:8000 -v django-db-services-data:/usr/src/app/data django-product-eval
 # TO PUSH TO REPO
-# docker tag django-db-services sasonline/django-product-eval
-# docker tag django-db-services sasonline/django-product-eval:p3.9.6d3.2.6b1
+# docker tag django-product-eval sasonline/django-product-eval
+# docker tag django-product-eval sasonline/django-product-eval:p3.9.6d3.2.6b4
 # docker login
 # docker push sasonline/django-product-eval
-# docker push sasonline/django-product-eval:p3.9.6d3.2.6b1
+# docker push sasonline/django-product-eval:p3.9.6d3.2.6b4
