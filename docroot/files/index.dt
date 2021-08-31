@@ -1,0 +1,60 @@
+{% extends "page.dt" %}
+
+{% block content %}
+
+    <h3>SPE Evaluation Application</h3>
+    <hr>
+    <p>
+    This application is used to rate and evaluate vendors during a selection process.
+    </p>
+
+    <h4>Intended Usage</h4>
+    <p>
+    Project managers will set up the project and hold meetings to come up with the list of project requirements
+    in which to rate the vendors.  Meetings will also be held to come up with a list of vendors.  Once the vendors
+    and requirements have been entered each person can add an evaluation for each requirement stating how confident
+    they are the vendor will meet the requirement using a percentage from 0-100.  If you have any doubts rank lower
+    and then adjust rankings as you feel more comfortable.  Every requirement evaluation has a notes field to take
+    extensive notes on questions or concerns.  You can also upload screenshots or link to sources using markdown.
+    See the link below the notes field for a markdown reference guide.  NOTE: to upload images you simply need to
+    drag and drop the image in the field after placing the cursor where you want the image included.  You do not
+    need to ever type the image syntax.  Staff can then use the admin and reports links on this page to view and discuss issues
+    and modify their percentages accordingly (this is meant to be a group effort).  It is recommended to have
+    vendors demo any low percentages before a decision is made.
+    </p>
+    <h4>Features</h4>
+    <p>
+    <ul>
+        <li>Tracks projects, vendors, features and evaluations for each feature</li>
+        <li>Simple reports for the team to discuss evaluations together</li>
+        <li>Ability to assign features to specific groups only so staff only needs to evaluate features they are
+        the knowlege experts for</li>
+        <li>Need to add: Ability to dump all evaluations for external usage and custom reporting</li>
+        <li>Need to add: Ability for evaluator to auto generate missing evaluations for ease of use</li>
+        <li>Ability for evaluator to filter on evaluations they haven't entered yet</li>
+    </ul>
+    </p>
+
+    <h4>User</h4>
+    <p>
+    You are logged in as: {{ request.user }}<br>
+    {{ real_ip }}<br>
+    </p>
+    <h4>Admin</h4>
+    <p><a href="/admin/">/admin/</a></p>
+
+    <h4>Reports</h4>
+    <p>
+    <a href="/reports/vendor/">Evaluations for a Vendor</a>
+    </p>
+
+{% endblock content %}
+
+{% block js %}
+    <script type="text/javascript" charset="utf-8">
+        $(function() {
+            // Add JQuery Here
+            // console.log("Page Level Javascript Ran!");
+        });
+    </script>
+{% endblock js %}

@@ -1,0 +1,69 @@
+{% extends "page.dt" %}
+
+{% block title %}Debug{% endblock title %}
+{% block description %}Test page used for debugging cookies, headers, ip, realip, and settings variable pass through{% endblock %}
+
+{% block content %}
+
+    <h3>Testing the context</h3>
+    <hr>
+{#    <h4>variables</h4>#}
+{#    {% for key, value in variables.items %}#}
+{#        {{ key }}:&nbsp;{{ value }}<br>#}
+{#    {% endfor %}#}
+    <h4>cookies</h4>
+    <p>
+    {% for key, value in request.COOKIES.items %}
+        {{ key }}:&nbsp;{{ value }}<br>
+    {% endfor %}
+    </p>
+    <h4>headers</h4>
+    <p>
+{#    {{ headers }}#}
+    {% for key, value in headers.items %}
+        {{ key }}:&nbsp;{{ value }}<br>
+    {% endfor %}
+    </p>
+    <h4>user</h4>
+    <p>
+    {{ user }}<br>
+    </p>
+    <h4>request ip</h4>
+    <p>
+    {{ request_ip }}<br>
+    </p>
+    <h4>real ip</h4>
+    <p>
+    {{ real_ip }}<br>
+    </p>
+
+{#    <h4>visitor</h4>#}
+{#    {% for key, value in visitor.items %}#}
+{#        {{ key }}:&nbsp;{{ value }}<br>#}
+{#    {% endfor %}#}
+
+{#    <h4>Active Users:</h4>#}
+{#    {% load request_tag %}#}
+{#    {% active_users in 10 minutes as user_list %}#}
+{#    {% for user in user_list %}#}
+{#        {{ user.username }}#}
+{#    {% endfor %}#}
+    <h4>testing DOCROOTCMS_BOOGER and DOCROOTCMS_BOOGER2 environment variable pass through</h4>
+    <p>
+    Note: To test create an environment variables for these set to a string and reload the page; Note the initial
+    DOCROOTCMS_ prefix is stripped off when included in the settings variables.<br>
+    <br>
+    settings.BOOGER: {{ b }}<br>
+    settings.BOOGER2: {{ b2 }}<br>
+    </p>
+
+{% endblock content %}
+
+{% block js %}
+    <script type="text/javascript" charset="utf-8">
+        $(function() {
+            // Add JQuery Here
+            console.log("Page Level Javascript Ran!");
+        });
+    </script>
+{% endblock js %}

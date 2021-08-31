@@ -1,0 +1,38 @@
+{% extends "page.dt" %}
+
+{% block css %}
+    <style>
+        td {border: 1px solid black; padding-left: 2px; padding-right: 2px;}
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <h3>Evaluations for a vendor</h3>
+    <hr>
+    <p>
+    Create a form to allow someone to filter a project, a vendor and maybe a functionality.  Require a post of at least
+    project before returning results so we don't get too many in the table the first load.  Consider this with ajax? vue?
+    </p>
+
+    {% for evaluation in evaluations %}
+        {% ifchanged evaluation.vendor %}
+            {% if not forloop.first %}</table>{% endif %}
+            <h3>{{ evaluation.vendor }}</h3>
+            {% if not forloop.last %}<table>{% endif %}
+        {% endifchanged %}
+        <tr>
+            <td>{{ evaluation.user }}</td><td>{{ evaluation.functionality }}</td><td align="right">{{ evaluation.percent_met }}</td><td>{{ evaluation.notes }}</td>
+        </tr>
+        {% if forloop.last %}</table>{% endif %}
+    {% endfor %}
+{% endblock content %}
+
+{% block js %}
+    <script type="text/javascript" charset="utf-8">
+        $(function() {
+            // Add JQuery Here
+            // console.log("Page Level Javascript Ran!");
+        });
+    </script>
+{% endblock js %}

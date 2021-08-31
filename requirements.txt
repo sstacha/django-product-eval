@@ -1,0 +1,5 @@
+Django
+django-docrootcms-tagulous
+django-markdownx
+django-docrootcms
+django-import-export

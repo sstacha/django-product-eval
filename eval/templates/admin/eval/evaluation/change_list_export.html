@@ -1,0 +1,128 @@
+{% extends "admin/import_export/change_list.html" %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    {# sas: include our knockout library for the modal and bindings to work #}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+{% endblock %}
+
+{% block object-tools-items %}
+    {# sas: include our button to have people generate missing evaluations to edit #}
+    <li>
+        <a id="generate_evals" class="export_link" href="#" role="button" data-toggle="modal" data-target="#generateDialog"><span class="glyphicon glyphicon-transfer"></span> Generate </a>
+    </li>
+    {% include "admin/import_export/change_list_export_item.html" %}
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+
+{# sas: include the modal dialog #}
+<!-- Event Modal Dialog -->
+<div class="modal fade" id="generateDialog" tabindex="-1" role="dialog" aria-labelledby="generateDialogLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="generateDialogLabel">Generate</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <p>
+          Clicking generate will generate all missing evaluations for all vendors for the given project code.<br>
+          <b>NOTE:</b> you must provide a valid project code.<br>
+          <br>
+          Project Code: <input id="generate_project_code" data-bind="value: projectCode" placeholder="Valid Project Code" required aria-required="true" />
+          <br><br>
+          <div id="ajax-status"></div>
+          </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="generate_project_code_submit" type="submit" class="btn btn-primary" data-bind="click: generate">Generate</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
+
+{# sas: include the javascript to wire the modal to the button #}
+<script type="text/javascript">
+function is_int(value) {
+  let x;
+  if (isNaN(value)) {
+    return false;
+  }
+  x = parseInt(value);
+  return (x | 0) === x;
+}
+// attempts to get an id attribute from a message object returned by a webservice; needs to deal with not there or
+//  invalid responses (not integer)
+function get_id(msg) {
+    let msg_obj = msg;
+    if (Array.isArray(msg) && msg.length > 0)
+        msg_obj = msg[0];
+
+    if ("id" in msg_obj) {
+        let this_id = msg_obj["id"];
+        // make sure it is an integer/long value
+        if (is_int(this_id))
+            return parseInt(this_id);
+    }
+    return 0
+}
+function GenerateEvaluationsModel() {
+    $('#generateDialog').on('shown.bs.modal', function () {
+        $('#generate_project_code').focus();
+    });
+    $("#generate_project_code").keyup(function(event){
+        if(event.keyCode === 13){
+            $("#generate_project_code_submit").click();
+        }
+    });
+    self.projectCode = ko.observable("");
+
+    // todo: create spe_api and call it instead; the call will display an error or complete and then route to the meeting detail seemlessly
+    // todo: use this url -> https://stackoverflow.com/questions/12965203/how-to-get-json-from-webpage-into-python-script
+    // Operations
+    self.generate = function() {
+        $("#generate_project_code_submit").attr("disabled", "disabled");
+        // alert('syncing meeting: ' + self.meetingCode());
+        let statusElement = $("#ajax-status");
+        let thisStatus = "";
+
+        if (self.projectCode().length > 0) {
+            statusElement.html(thisStatus + "<br>generating missing evaluations for " + self.projectCode());
+            $.ajax("/eval/api/generate/" + self.projectCode() + "/", {
+                type: "get",
+                contentType: "application/json"
+            }).done(function (msg) {
+                // alert(JSON.stringify(result)); location.reload()
+                thisStatus = statusElement.html();
+                statusElement.html(thisStatus + "<br>done syncing " + self.projectCode());
+                location.reload(true);
+            }).fail(function (xhr, status, error) {
+                // error handling
+                let err_msg = xhr.responseText;
+                if (err_msg === 'undefined' || err_msg === '')
+                    err_msg = error;
+                thisStatus = statusElement.html();
+                statusElement.html(thisStatus + "<br>" + JSON.stringify(status) + "<br>" + JSON.stringify(err_msg));
+                $("#generate_project_code_submit").removeAttr("disabled");
+            });
+        } else {
+            statusElement.html(thisStatus + "<br>you must provide a project code! ");
+        }
+    };
+}
+(function($) {
+    $(document).ready(function($) {
+        // Activates knockout.js
+        ko.applyBindings(new GenerateEvaluationsModel(), document.getElementById("evaluationsDialog"));
+    });
+})(django.jQuery);
+</script>
+
+{% endblock %}
