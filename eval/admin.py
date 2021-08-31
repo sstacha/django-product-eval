@@ -157,7 +157,7 @@ class UserFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         qs_users = User.objects.exclude(id=request.user.id)
-        list_users = []
+        list_users = [(0, ' Everyone')]
         for usr in qs_users:
             list_users.append(
                 (usr.id, usr.username)
@@ -167,7 +167,7 @@ class UserFilter(admin.SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value():
+        if self.value() and self.value() != '0':
             return queryset.filter(user__id=self.value())
         return queryset
 
@@ -192,9 +192,8 @@ class EvaluationAdmin(EvaluationExportMixin, MarkdownxModelAdmin):
         # if we specified another user let normal filtering happen
         if request.GET.get('user') or request.POST.get('user'):
             return qs
-        else:
-            # otherwise filter to the current user
-            return qs.filter(user=request.user)
+        # otherwise filter to the current user
+        return qs.filter(user=request.user)
 
     # def formfield_for_foreignkey(self, db_field, request, **kwargs):
     #     """
