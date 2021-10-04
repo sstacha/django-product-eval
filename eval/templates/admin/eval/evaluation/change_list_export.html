@@ -11,7 +11,10 @@
     <li>
         <a id="generate_evals" class="export_link" href="#" role="button" data-toggle="modal" data-target="#generateDialog"><span class="glyphicon glyphicon-transfer"></span> Generate </a>
     </li>
-    {% include "admin/import_export/change_list_export_item.html" %}
+    <li>
+        <a id="export_evals" class="export_link" href="#" role="button" data-toggle="modal" data-target="#exportDialog"><span class="glyphicon glyphicon-transfer"></span> Export </a>
+    </li>
+    {# % include "admin/import_export/change_list_export_item.html" % #}
     {{ block.super }}
 {% endblock %}
 
@@ -19,7 +22,7 @@
     {{ block.super }}
 
 {# sas: include the modal dialog #}
-<!-- Event Modal Dialog -->
+<!-- Generate Modal Dialog -->
 <div class="modal fade" id="generateDialog" tabindex="-1" role="dialog" aria-labelledby="generateDialogLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -42,6 +45,31 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <button id="generate_project_code_submit" type="submit" class="btn btn-primary" data-bind="click: generate">Generate</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
+<!-- Export Modal Dialog -->
+<div class="modal fade" id="exportDialog" tabindex="-1" role="dialog" aria-labelledby="exportDialogLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exportDialogLabel">Export</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <p>
+          Clicking export will export all evaluations in csv format to your local machine.<br>
+          <br><br>
+          <div id="export-ajax-status"></div>
+          </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="export_submit" type="submit" class="btn btn-primary" data-bind="click: export_evaluations">Export</button>
       </div>
     </div>
   </div>
@@ -117,10 +145,37 @@ function GenerateEvaluationsModel() {
         }
     };
 }
+function ExportEvaluationsModel() {
+    self.export_evaluations = function() {
+        $("#export_submit").attr("disabled", "disabled");
+        let statusElement = $("#export-ajax-status");
+        let thisStatus = "";
+
+        statusElement.html(thisStatus + "<br>exporting evaluations...");
+        $.ajax("/eval/api/export/", {
+            type: "get",
+            contentType: "application/json"
+        }).done(function (msg) {
+            // alert(JSON.stringify(result)); location.reload()
+            thisStatus = statusElement.html();
+            statusElement.html(thisStatus + "<br>done exporting...");
+            location.reload(true);
+        }).fail(function (xhr, status, error) {
+            // error handling
+            let err_msg = xhr.responseText;
+            if (err_msg === 'undefined' || err_msg === '')
+                err_msg = error;
+            thisStatus = statusElement.html();
+            statusElement.html(thisStatus + "<br>" + JSON.stringify(status) + "<br>" + JSON.stringify(err_msg));
+            $("#export_submit").removeAttr("disabled");
+        });
+    };
+}
 (function($) {
     $(document).ready(function($) {
         // Activates knockout.js
-        ko.applyBindings(new GenerateEvaluationsModel(), document.getElementById("evaluationsDialog"));
+        ko.applyBindings(new GenerateEvaluationsModel(), document.getElementById("generateDialog"));
+        ko.applyBindings(new ExportEvaluationsModel(), document.getElementById("exportDialog"));
     });
 })(django.jQuery);
 </script>

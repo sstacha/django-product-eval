@@ -79,7 +79,7 @@ class ProjectFunctionality(models.Model):
     """
     objects = EvaluationManager()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    functionality = models.CharField(max_length=400)
+    description = models.CharField(max_length=400)
     # priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default=DEFAULT_PRIORITY)
     priorities = TagField(
         to=PriorityCategory,
@@ -99,13 +99,13 @@ class ProjectFunctionality(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['project', 'order', 'functionality']
+        ordering = ['project', 'order', 'description']
         verbose_name = "Project requirement"
 
     def __str__(self):
         if self.order:
-            return f'{str(self.order)}. {str(self.functionality)}'
-        return self.functionality
+            return f'{str(self.order)}. {str(self.description)}'
+        return self.description
 
 
 class Evaluation(models.Model):
@@ -115,10 +115,13 @@ class Evaluation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     vendor = models.ForeignKey(ProjectVendor, on_delete=models.CASCADE)
     functionality = models.ForeignKey(ProjectFunctionality, on_delete=models.CASCADE)
-    percent_met = models.PositiveSmallIntegerField(null=True, blank=True, default=None, validators=[MaxValueValidator(100), MinValueValidator(0)], 
-        help_text="The percentage functionality is met in your opinion (0-100)")
-    confirmed = models.BooleanField(default=False, help_text=
-        "Have you actually seen this or reading documentation saying it exists")
+    score = models.PositiveSmallIntegerField(null=True, blank=True, default=None,
+                                             validators=[MaxValueValidator(10), MinValueValidator(0)],
+                                             help_text="(0-10) How well does this vendor meet this requirement 0-None "
+                                                       "to 10-The best.  Remember that 2 vendors can meet a "
+                                                       "requirement but one could be more difficult to setup or "
+                                                       "maintain.  Your scores should reflect this.")
+    confirmed = models.BooleanField(default=False, verbose_name="Confirmed during product demonstration or evaluation")
     notes = ContentMarkdownField(field_image_prefix='evaluation/notes', null=True, blank=True, help_text=mark_safe(
         'Markdown Reference: <a href="https://commonmark.org/help/">https://commonmark.org/help/</a>'))
     
@@ -126,4 +129,4 @@ class Evaluation(models.Model):
         ordering = ['vendor', 'functionality', 'user']
 
     def __str__(self):
-        return f'({self.percent_met}) {str(self.functionality)}'
+        return f'({self.score}) {str(self.functionality)}'

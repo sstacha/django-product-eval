@@ -6,6 +6,7 @@ from django.utils.encoding import force_text
 from markdownx.admin import MarkdownxModelAdmin
 from import_export import resources
 from import_export.admin import ExportMixin
+from import_export.fields import Field
 
 from .models import Project, ProjectVendor, ProjectFunctionality, Evaluation
 
@@ -19,10 +20,43 @@ class EvaluationResource(resources.ModelResource):
     """
     Used by import/export to handle exporting evaluations
     """
+    # login = Field()
+
     class Meta:
         model = Evaluation
+        # fields = ('id', 'login', 'user__username')
         skip_unchanged = True
         report_skipped = False
+        fields = (
+            'id',
+            # 'user',
+            'user__username',
+            # 'vendor',
+            'vendor__name',
+            # 'functionality',
+            'functionality__description',
+            'score',
+            'confirmed',
+            'functionality__priorities',
+            'notes',
+        )
+        export_order = (
+            'id',
+            # 'user',
+            'user__username',
+            # 'vendor',
+            'vendor__name',
+            # 'functionality',
+            'functionality__description',
+            'score',
+            'confirmed',
+            'functionality__priorities',
+            'notes',
+        )
+
+    # def dehydrate_login(self, evaluation):
+    #     return evaluation.user.username
+
 
 
 @admin.register(Project)
@@ -50,12 +84,17 @@ class ProjectFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(vendor__project__code=self.value())
+            if queryset.model._meta.object_name == 'ProjectVendor' or queryset.model._meta.object_name == \
+                    'ProjectFunctionality':
+                return queryset.filter(project__code=self.value())
+            else:
+                return queryset.filter(vendor__project__code=self.value())
 
 
 @admin.register(ProjectVendor)
 class VendorAdmin(admin.ModelAdmin):
-    list_display = ('project', 'name', 'is_active')
+    ordering = ('project', 'name', '-is_active')
+    list_display = ('name', 'is_active', 'project')
     list_filter = (ProjectFilter, 'is_active')
     search_fields = ['name', 'id']
     readonly_fields = ['id']
@@ -69,7 +108,7 @@ class ProjectFunctionalityForm(forms.ModelForm):
         model = ProjectFunctionality
         fields = '__all__'
         widgets = {
-            'functionality': forms.Textarea(attrs={'cols': 40, 'rows': 10})
+            'description': forms.Textarea(attrs={'cols': 40, 'rows': 10})
         }
 
 
@@ -97,7 +136,7 @@ class AppliesToFilter(admin.SimpleListFilter):
 class ProjectFunctionalityAdmin(admin.ModelAdmin):
     form = ProjectFunctionalityForm
     list_filter = (ProjectFilter, AppliesToFilter)
-    search_fields = ['functionality', 'id']
+    search_fields = ['description', 'id']
     readonly_fields = ['id']
     filter_horizontal = ['groups']
 
@@ -112,28 +151,28 @@ class ProjectFunctionalityAdmin(admin.ModelAdmin):
 
 
 class PercentFilter(admin.SimpleListFilter):
-    title = 'has percent'
-    parameter_name = 'has_percent'
+    title = 'has score'
+    parameter_name = 'has_score'
 
     def lookups(self, request, model_admin):
         return (
             ('no', 'Not Entered'),
             ('0', 'Zero Percent'),
-            ('lt60', 'Less than 60%')
+            ('lt6', 'Less than 6')
         )
 
     def queryset(self, request, queryset):
         value = self.value()
         if value == 'no':
             return queryset.filter(
-                Q(percent_met__isnull=True)
+                Q(score__isnull=True)
             )
         if value == '0':
             return queryset.filter(
-                Q(percent_met__lte=0)
+                Q(score__lte=0)
             )
-        if value == 'lt60':
-            return queryset.filter(percent_met__lt=60)
+        if value == 'lt6':
+            return queryset.filter(score__lt=6)
         return queryset
 
 
@@ -174,10 +213,20 @@ class UserFilter(admin.SimpleListFilter):
 
 @admin.register(Evaluation)
 class EvaluationAdmin(EvaluationExportMixin, MarkdownxModelAdmin):
-    list_display = ('vendor', 'functionality', 'user', 'percent_met', 'confirmed')
+    list_display = ('vendor', 'functionality', 'priorities', 'categories', 'user', 'score', 'confirmed')
     list_filter = ('vendor', PercentFilter, ProjectFilter, UserFilter)
-    search_fields = ['functionality__functionality', ]
+    search_fields = ['functionality__description', ]
     readonly_fields = ['id', 'user', 'vendor', 'functionality']
+
+    def custom_confirmed(self, obj):
+        return obj.confirmed
+    custom_confirmed.short_description = 'confirmed'
+
+    def priorities(self, obj):
+        return "\n".join([str(p) for p in obj.functionality.priorities.all()])
+
+    def categories(self, obj):
+        return "\n".join([str(c) for c in obj.functionality.categories.all()])
 
     def has_add_permission(self, request):
         return False
@@ -191,6 +240,9 @@ class EvaluationAdmin(EvaluationExportMixin, MarkdownxModelAdmin):
         qs = super().get_queryset(request)
         # if we specified another user let normal filtering happen
         if request.GET.get('user') or request.POST.get('user'):
+            return qs
+        # if we are on an edit page we still want to show the record
+        if '/change/' in request.path:
             return qs
         # otherwise filter to the current user
         return qs.filter(user=request.user)
@@ -211,3 +263,7 @@ class EvaluationAdmin(EvaluationExportMixin, MarkdownxModelAdmin):
     #             # only display if our groups match
     #             kwargs["queryset"] = ProjectFunctionality.objects.filter(groups__in=groups)
     #     return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+def export_evaluations():
+    return EvaluationResource.export()
