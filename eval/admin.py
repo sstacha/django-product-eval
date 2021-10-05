@@ -7,6 +7,7 @@ from markdownx.admin import MarkdownxModelAdmin
 from import_export import resources
 from import_export.admin import ExportMixin
 from import_export.fields import Field
+from django.utils.html import format_html, linebreaks
 
 from .models import Project, ProjectVendor, ProjectFunctionality, Evaluation
 
@@ -213,7 +214,8 @@ class UserFilter(admin.SimpleListFilter):
 
 @admin.register(Evaluation)
 class EvaluationAdmin(EvaluationExportMixin, MarkdownxModelAdmin):
-    list_display = ('vendor', 'functionality', 'priorities', 'categories', 'user', 'score', 'confirmed')
+    fields = ('functionality', 'score', 'confirmed', 'notes', 'user', 'vendor', 'id')
+    list_display = ('vendor', 'formatted_functionality', 'priorities', 'categories', 'user', 'score', 'custom_confirmed')
     list_filter = ('vendor', PercentFilter, ProjectFilter, UserFilter)
     search_fields = ['functionality__description', ]
     readonly_fields = ['id', 'user', 'vendor', 'functionality']
@@ -221,12 +223,19 @@ class EvaluationAdmin(EvaluationExportMixin, MarkdownxModelAdmin):
     def custom_confirmed(self, obj):
         return obj.confirmed
     custom_confirmed.short_description = 'confirmed'
+    custom_confirmed.boolean = True
+
+    def formatted_functionality(self, obj):
+        if obj.functionality and obj.functionality.description:
+            return format_html(linebreaks(obj.functionality.description))
+        return obj.functionality.description
+    formatted_functionality.short_description = 'functionality'
 
     def priorities(self, obj):
-        return "\n".join([str(p) for p in obj.functionality.priorities.all()])
+        return format_html("<br>".join([str(p) for p in obj.functionality.priorities.all()]))
 
     def categories(self, obj):
-        return "\n".join([str(c) for c in obj.functionality.categories.all()])
+        return format_html("<br>".join([str(c) for c in obj.functionality.categories.all()]))
 
     def has_add_permission(self, request):
         return False

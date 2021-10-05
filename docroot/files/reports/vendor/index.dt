@@ -22,7 +22,7 @@
             {% if not forloop.last %}<table>{% endif %}
         {% endifchanged %}
         <tr>
-            <td>{{ evaluation.user }}</td><td>{{ evaluation.functionality }}</td><td align="right">{{ evaluation.percent_met }}</td><td>{{ evaluation.notes }}</td>
+            <td>{{ evaluation.user }}</td><td>{{ evaluation.functionality }}</td><td align="right">{{ evaluation.score }}</td><td>{{ evaluation.formatted_markdown|safe }}</td>
         </tr>
         {% if forloop.last %}</table>{% endif %}
     {% endfor %}

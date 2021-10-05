@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.core.validators import MaxValueValidator, MinValueValidator
 from tagulous.models import TagField, TagModel, TagTreeModel
 from docrootcms.models import ContentMarkdownField
+from markdownx.utils import markdownify
 
 
 class EvaluationManager(models.Manager):
@@ -127,6 +128,11 @@ class Evaluation(models.Model):
     
     class Meta:
         ordering = ['vendor', 'functionality', 'user']
+
+    def formatted_markdown(self):
+        if self.notes:
+            return markdownify(str(self.notes))
+        return self.notes
 
     def __str__(self):
         return f'({self.score}) {str(self.functionality)}'
