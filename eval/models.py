@@ -80,7 +80,7 @@ class ProjectFunctionality(models.Model):
     """
     objects = EvaluationManager()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    description = models.CharField(max_length=400)
+    description = models.CharField(max_length=1024)
     # priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default=DEFAULT_PRIORITY)
     priorities = TagField(
         to=PriorityCategory,
