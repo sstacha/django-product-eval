@@ -1,5 +1,6 @@
 from django.shortcuts import HttpResponse
 from .utils import generate_evaluations
+# from .admin import export_evaluations as admin_export_evaluations
 
 
 def detail(request, question_id):
@@ -18,3 +19,17 @@ def generate_missing_evaluations(request, product_code):
     except Exception as ex:
         return HttpResponse(str(ex), status=500)
     return HttpResponse(return_msg)
+
+#
+#
+# def export_evaluations(request):
+#     """
+#     exports all evaluations from the admin screen button
+#     :param request: request object
+#     :return: list of records created or empty string
+#     """
+#     try:
+#         admin_export_evaluations()
+#         return HttpResponse('Evaluations exported.')
+#     except Exception as ex:
+#         return HttpResponse(str(ex), status=500)

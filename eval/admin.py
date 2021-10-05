@@ -6,7 +6,7 @@ from django.utils.encoding import force_text
 from markdownx.admin import MarkdownxModelAdmin
 from import_export import resources
 from import_export.admin import ExportMixin
-from import_export.fields import Field
+# from import_export.fields import Field
 from django.utils.html import format_html, linebreaks
 
 from .models import Project, ProjectVendor, ProjectFunctionality, Evaluation
@@ -275,4 +275,4 @@ class EvaluationAdmin(EvaluationExportMixin, MarkdownxModelAdmin):
 
 
 def export_evaluations():
-    return EvaluationResource.export()
+    return EvaluationResource().export()
